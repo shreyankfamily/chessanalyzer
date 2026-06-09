@@ -157,7 +157,7 @@ function buildModel() {
   model.add(tf.layers.dense({ units: CLASSES.length, activation: 'softmax' }))
   model.compile({
     optimizer: tf.train.adam(0.001),
-    loss: 'sparseCategoricalCrossentropy',
+    loss: 'categoricalCrossentropy',
     metrics: ['accuracy'],
   })
   return model
@@ -172,7 +172,7 @@ export function getModel(onProgress) {
     const xTensor = tf.tensor4d(
       flatten(xs), [n, CELL, CELL, 1]
     )
-    const yTensor = tf.tensor1d(ys, 'int32')
+    const yTensor = tf.oneHot(tf.tensor1d(ys, 'int32'), CLASSES.length)
     const model = buildModel()
     await model.fit(xTensor, yTensor, {
       epochs: 12,

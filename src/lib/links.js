@@ -1,8 +1,9 @@
 // Build "open analysis" URLs for external sites from a FEN.
 
 export function lichessUrl(fen) {
-  // Lichess analysis board accepts the FEN in the path (spaces -> underscores).
-  return `https://lichess.org/analysis/${encodeURIComponent(fen)}`
+  // Lichess wants the FEN in the path with spaces as underscores and the
+  // rank slashes kept literal (NOT percent-encoded).
+  return `https://lichess.org/analysis/${fen.trim().replace(/ /g, '_')}`
 }
 
 export function chessComUrl(fen) {
