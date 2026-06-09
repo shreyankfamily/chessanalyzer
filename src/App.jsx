@@ -1,0 +1,220 @@
+import { useEffect, useMemo, useState, lazy, Suspense } from 'react'
+import { Chessboard } from 'react-chessboard'
+import { Chess } from 'chess.js'
+import { START_FEN, EMPTY_FEN, withTurn, getTurn } from './lib/fen.js'
+import { lichessUrl, chessComUrl, chessTempoUrl } from './lib/links.js'
+import { useEngine } from './lib/useEngine.js'
+import { pvToSan } from './lib/pv.js'
+
+// Code-split: TensorFlow.js (~1.4MB) only loads when the user opens the scanner.
+const ScanModal = lazy(() => import('./components/ScanModal.jsx'))
+
+function isLegalFen(fen) {
+  try {
+    new Chess(fen)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export default function App() {
+  const [fen, setFen] = useState(START_FEN)
+  const [orientation, setOrientation] = useState('white')
+  const [engineOn, setEngineOn] = useState(false)
+  const [showScan, setShowScan] = useState(false)
+  const [fenInput, setFenInput] = useState(START_FEN)
+  const [pgnInput, setPgnInput] = useState('')
+  const [boardWidth, setBoardWidth] = useState(360)
+
+  // Load a position passed by the ChessTempo extension via ?fen=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const qf = params.get('fen')
+    if (qf) {
+      const decoded = decodeURIComponent(qf)
+      setFen(decoded)
+      setFenInput(decoded)
+    }
+  }, [])
+
+  useEffect(() => {
+    const fit = () => setBoardWidth(Math.min(window.innerWidth - 32, 480))
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [])
+
+  const legal = useMemo(() => isLegalFen(fen), [fen])
+  const { bestMove, thinking, evalText, info } = useEngine(
+    fen,
+    engineOn && legal
+  )
+
+  const turn = getTurn(fen)
+
+  const bestArrow = useMemo(() => {
+    if (!bestMove || bestMove.length < 4) return []
+    return [[bestMove.slice(0, 2), bestMove.slice(2, 4), 'rgb(0, 128, 0)']]
+  }, [bestMove])
+
+  const pvText = useMemo(() => {
+    if (!info?.pv?.length || !legal) return ''
+    return pvToSan(fen, info.pv)
+  }, [info, fen, legal])
+
+  function onPieceDrop(from, to) {
+    if (!legal) return false
+    const game = new Chess(fen)
+    try {
+      const move = game.move({ from, to, promotion: 'q' })
+      if (!move) return false
+      const nf = game.fen()
+      setFen(nf)
+      setFenInput(nf)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  function applyFen(newFen) {
+    setFen(newFen)
+    setFenInput(newFen)
+  }
+
+  function applyPlacement(placement) {
+    const full = `${placement} ${turn} - - 0 1`
+    applyFen(full)
+    setShowScan(false)
+  }
+
+  function loadFenInput() {
+    const v = fenInput.trim()
+    if (!v) return
+    applyFen(v)
+  }
+
+  function loadPgn() {
+    const game = new Chess()
+    try {
+      game.loadPgn(pgnInput)
+      const nf = game.fen()
+      applyFen(nf)
+    } catch {
+      alert('Could not parse that PGN.')
+    }
+  }
+
+  function toggleTurn() {
+    const nf = withTurn(fen, turn === 'w' ? 'b' : 'w')
+    applyFen(nf)
+  }
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>ChessAnalyzer</h1>
+        <p>Scan, analyze &amp; open positions anywhere</p>
+      </header>
+
+      <div className="content">
+        {/* Board */}
+        <div className="panel">
+          <div className="row between" style={{ marginBottom: 10 }}>
+            <span className="turn-pill">{turn === 'w' ? 'White' : 'Black'} to move</span>
+            {!legal && <span className="error">Illegal position — fix to analyze</span>}
+          </div>
+          <div style={{ margin: '0 auto', width: boardWidth }}>
+            <Chessboard
+              position={fen}
+              boardOrientation={orientation}
+              boardWidth={boardWidth}
+              onPieceDrop={onPieceDrop}
+              customArrows={engineOn ? bestArrow : []}
+              arePiecesDraggable={legal}
+            />
+          </div>
+          <div className="toolbar" style={{ marginTop: 10 }}>
+            <button className="icon-btn" title="Flip board" onClick={() => setOrientation((o) => (o === 'white' ? 'black' : 'white'))}>⇅</button>
+            <button className="icon-btn" title="Swap side to move" onClick={toggleTurn}>♟⇄</button>
+            <button className="icon-btn" title="Starting position" onClick={() => applyFen(START_FEN)}>⟲</button>
+            <button className="icon-btn" title="Clear board" onClick={() => applyFen(EMPTY_FEN)}>▢</button>
+          </div>
+        </div>
+
+        {/* Scan */}
+        <button className="btn primary block" onClick={() => setShowScan(true)}>
+          📷 Scan a board image
+        </button>
+
+        {/* Engine */}
+        <div className="panel">
+          <div className="row between">
+            <div className="engine-toggle">
+              <label className="switch">
+                <input type="checkbox" checked={engineOn} onChange={(e) => setEngineOn(e.target.checked)} />
+                <span className="slider" />
+              </label>
+              <div>
+                <div style={{ fontWeight: 600 }}>Stockfish</div>
+                <div className="muted">in your browser</div>
+              </div>
+            </div>
+            <div className="eval-bar">
+              {engineOn ? (evalText ?? (thinking ? '…' : '')) : ''}
+            </div>
+          </div>
+          {engineOn && (
+            <div style={{ marginTop: 10 }}>
+              <div className="bestmove">
+                {bestMove ? (
+                  <>Best move: <strong>{bestMove.slice(0, 2)}→{bestMove.slice(2, 4)}</strong>{info?.depth ? ` (depth ${info.depth})` : ''}</>
+                ) : (
+                  <span className="muted">{thinking ? 'Thinking…' : 'No move'}</span>
+                )}
+              </div>
+              {pvText && <div className="eval-line" style={{ marginTop: 6 }}>{pvText}</div>}
+            </div>
+          )}
+        </div>
+
+        {/* Open in */}
+        <div className="panel">
+          <h2>Open analysis in</h2>
+          <div className="links">
+            <a className="link-btn" href={lichessUrl(fen)} target="_blank" rel="noreferrer">Lichess<small>analysis</small></a>
+            <a className="link-btn" href={chessComUrl(fen)} target="_blank" rel="noreferrer">Chess.com<small>analysis</small></a>
+            <a className="link-btn" href={chessTempoUrl(fen)} target="_blank" rel="noreferrer">ChessTempo<small>board editor</small></a>
+          </div>
+        </div>
+
+        {/* FEN / PGN */}
+        <div className="panel">
+          <h2>FEN</h2>
+          <textarea rows={2} value={fenInput} onChange={(e) => setFenInput(e.target.value)} />
+          <div className="row" style={{ marginTop: 8 }}>
+            <button className="btn ghost sm" onClick={loadFenInput}>Set FEN</button>
+            <button className="btn outline sm" onClick={() => navigator.clipboard?.writeText(fen)}>Copy FEN</button>
+          </div>
+
+          <h2 style={{ marginTop: 16 }}>PGN</h2>
+          <textarea rows={3} value={pgnInput} onChange={(e) => setPgnInput(e.target.value)} placeholder="Paste PGN to load final position…" />
+          <div className="row" style={{ marginTop: 8 }}>
+            <button className="btn ghost sm" onClick={loadPgn}>Set PGN</button>
+          </div>
+        </div>
+
+        <p className="muted center" style={{ paddingBottom: 24 }}>
+          Runs fully in your browser · No data leaves your device
+        </p>
+      </div>
+
+      {showScan && (
+        <Suspense fallback={<div className="modal-backdrop"><div className="modal center"><span className="spinner" style={{ borderColor: '#3b82f6', borderTopColor: 'transparent' }} /> Loading scanner…</div></div>}>
+          <ScanModal onClose={() => setShowScan(false)} onApply={applyPlacement} />
+        </Suspense>
+      )}
+    </div>
+  )
+}

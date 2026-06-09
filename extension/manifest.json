@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "ChessAnalyzer ↔ ChessTempo Bridge",
+  "version": "0.1.0",
+  "description": "Reads the live chess position from ChessTempo's page (no screenshots) and opens it in ChessAnalyzer for engine analysis.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://chesstempo.com/*",
+    "https://*.chesstempo.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ChessAnalyzer Bridge"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chesstempo.com/*", "https://*.chesstempo.com/*"],
+      "js": ["extract.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

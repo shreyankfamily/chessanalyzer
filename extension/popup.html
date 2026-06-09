@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: -apple-system, system-ui, sans-serif; width: 280px; margin: 0; padding: 14px; }
+      h1 { font-size: 15px; margin: 0 0 4px; }
+      p { font-size: 12px; color: #6b7280; margin: 0 0 12px; }
+      .fen { font-family: ui-monospace, monospace; font-size: 11px; background: #f3f4f6; border-radius: 6px; padding: 8px; word-break: break-all; min-height: 16px; }
+      button { width: 100%; margin-top: 10px; padding: 10px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+      .primary { background: #2a1a6e; color: #fff; }
+      .secondary { background: #eef2ff; color: #2a1a6e; }
+      .err { color: #e11d48; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>ChessAnalyzer Bridge</h1>
+    <p>Reads the live ChessTempo position (no screenshots).</p>
+    <div id="fen" class="fen">Detecting…</div>
+    <button id="open" class="primary">Open in ChessAnalyzer</button>
+    <button id="copy" class="secondary">Copy FEN</button>
+    <div id="err" class="err"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>
