@@ -25,22 +25,6 @@ const GLYPHS = {
 }
 const CELL = 32 // model input size (grayscale)
 
-// Real piece art from chess.com, loaded at scan-time from their CDN (which
-// serves these with `Access-Control-Allow-Origin: *`, so they can be drawn
-// onto a canvas without tainting it). Nothing is bundled into the repo.
-// Training on the actual rendered pieces — not just Unicode glyphs — is what
-// lets the scanner read chess.com's canvas board.
-const CC_PIECE_BASE = 'https://images.chesscomfiles.com/chess-themes/pieces'
-const CC_THEMES = ['neo', 'classic'] // default + a common alternative
-
-// Board square palettes [light, dark] to render pieces/empties on, so the model
-// generalizes across board themes instead of memorizing one square color.
-const PALETTES = [
-  ['#eeeed2', '#769656'], // chess.com green (default)
-  ['#f0d9b5', '#b58863'], // wood
-  ['#dee3e6', '#8ca2ad'], // gray/blue
-]
-
 let modelPromise = null
 
 // ---------- Image helpers ----------
@@ -130,66 +114,7 @@ function renderGlyph(pieceChar, opts) {
   return toGray(data)
 }
 
-// ---------- Real piece-art training data (chess.com) ----------
-
-// 'P' -> 'wp', 'n' -> 'bn' (chess.com filenames: color letter + piece letter).
-function pieceFile(char) {
-  const isWhite = char === char.toUpperCase()
-  return (isWhite ? 'w' : 'b') + char.toLowerCase()
-}
-
-function loadImage(src) {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = () => resolve(null) // tolerate a missing theme / being offline
-    img.src = src
-  })
-}
-
-// Fetch every piece image we can; returns [{ char, img }] for those that load.
-// Failures (offline, blocked) are skipped so training still falls back to the
-// glyph dataset.
-async function loadPieceImages() {
-  const jobs = []
-  for (const theme of CC_THEMES) {
-    for (const char of CLASSES) {
-      if (char === 'empty') continue
-      const url = `${CC_PIECE_BASE}/${theme}/150/${pieceFile(char)}.png`
-      jobs.push(loadImage(url).then((img) => (img ? { char, img } : null)))
-    }
-  }
-  return (await Promise.all(jobs)).filter(Boolean)
-}
-
-function squareBg(ctx, palette, dark) {
-  ctx.fillStyle = dark ? palette[1] : palette[0]
-  ctx.fillRect(0, 0, CELL, CELL)
-}
-
-function renderPieceImage(img, { palette, dark, scale, dx, dy }) {
-  const canvas = document.createElement('canvas')
-  canvas.width = CELL
-  canvas.height = CELL
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  squareBg(ctx, palette, dark)
-  const s = Math.round(CELL * scale)
-  const off = Math.round((CELL - s) / 2)
-  ctx.drawImage(img, off + dx, off + dy, s, s)
-  return toGray(ctx.getImageData(0, 0, CELL, CELL).data)
-}
-
-function renderEmptySquare(palette, dark) {
-  const canvas = document.createElement('canvas')
-  canvas.width = CELL
-  canvas.height = CELL
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  squareBg(ctx, palette, dark)
-  return toGray(ctx.getImageData(0, 0, CELL, CELL).data)
-}
-
-function buildDataset(pieceImages = []) {
+function buildDataset() {
   const fonts = ['serif', 'sans-serif', '"Arial Unicode MS"']
   const scales = [0.7, 0.8, 0.9]
   const jitters = [0, -1, 1]
@@ -213,40 +138,6 @@ function buildDataset(pieceImages = []) {
       }
     }
   })
-
-  // Real chess.com piece art, rendered across board palettes so the model sees
-  // actual rendered pieces (this is what fixes recognition on chess.com).
-  const imgScales = [0.82, 0.92, 1.0] // chess.com pieces nearly fill the square
-  const imgJitter = [-1, 1]
-  for (const { char, img } of pieceImages) {
-    const idx = CLASSES.indexOf(char)
-    for (const palette of PALETTES) {
-      for (const dark of [false, true]) {
-        for (const scale of imgScales) {
-          for (const dx of imgJitter) {
-            for (const dy of imgJitter) {
-              xs.push(renderPieceImage(img, { palette, dark, scale, dx, dy }))
-              ys.push(idx)
-            }
-          }
-        }
-      }
-    }
-  }
-  // Empty squares on the real palettes (the glyph step only covered wood), so
-  // green/gray empty squares aren't misread as pieces.
-  if (pieceImages.length) {
-    const emptyIdx = CLASSES.indexOf('empty')
-    for (const palette of PALETTES) {
-      for (const dark of [false, true]) {
-        for (let k = 0; k < 8; k++) {
-          xs.push(renderEmptySquare(palette, dark))
-          ys.push(emptyIdx)
-        }
-      }
-    }
-  }
-
   return { xs, ys }
 }
 
@@ -276,8 +167,7 @@ function buildModel() {
 export function getModel(onProgress) {
   if (modelPromise) return modelPromise
   modelPromise = (async () => {
-    const pieceImages = await loadPieceImages()
-    const { xs, ys } = buildDataset(pieceImages)
+    const { xs, ys } = buildDataset()
     const n = xs.length
     const xTensor = tf.tensor4d(
       flatten(xs), [n, CELL, CELL, 1]

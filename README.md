@@ -48,11 +48,11 @@ you rename the repo.
 ## Browser bridge extension
 
 The `extension/` folder is a Manifest V3 extension (Chrome/Edge/Brave) that
-works on **ChessTempo**, **Chess.com** and **Lichess**.
+works on **ChessTempo** and **Lichess**.
 
 1. `chrome://extensions` → enable **Developer mode** → **Load unpacked** →
    select the `extension/` folder.
-2. Open any board on chesstempo.com, chess.com or lichess.org. A floating
+2. Open any board on chesstempo.com or lichess.org. A floating
    **"Analyze in ChessAnalyzer"** button appears (or use the toolbar popup).
 3. It reads the FEN straight from the page and opens it in the app via
    `?fen=...`.
@@ -60,8 +60,7 @@ works on **ChessTempo**, **Chess.com** and **Lichess**.
 **Per-site detection.** `extension/extract.js` tries several strategies in
 order: known globals, copy-FEN fields, inline-script FEN, the Lichess/
 chessground board (pieces positioned by CSS transform, orientation-aware),
-then a generic board-DOM reader that also understands Chess.com's numeric
-`square-NN` piece classes.
+then a generic board-DOM reader.
 
 **Screenshot fallback.** If DOM detection misses (e.g. a site changes its
 markup), the popup also has **📸 Screenshot & scan**: it captures the page,

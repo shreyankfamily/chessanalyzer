@@ -2,13 +2,11 @@
   "manifest_version": 3,
   "name": "ChessAnalyzer Bridge",
   "version": "0.2.0",
-  "description": "Reads the live chess position from ChessTempo, Chess.com or Lichess (no screenshots) and opens it in ChessAnalyzer for engine analysis.",
+  "description": "Reads the live chess position from ChessTempo or Lichess (no screenshots) and opens it in ChessAnalyzer for engine analysis.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://chesstempo.com/*",
     "https://*.chesstempo.com/*",
-    "https://www.chess.com/*",
-    "https://*.chess.com/*",
     "https://lichess.org/*",
     "https://*.lichess.org/*",
     "https://shreyankfamily.github.io/*"
@@ -22,8 +20,6 @@
       "matches": [
         "https://chesstempo.com/*",
         "https://*.chesstempo.com/*",
-        "https://www.chess.com/*",
-        "https://*.chess.com/*",
         "https://lichess.org/*",
         "https://*.lichess.org/*"
       ],

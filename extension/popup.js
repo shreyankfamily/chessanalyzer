@@ -8,13 +8,13 @@ async function activeTab() {
   return tab
 }
 
-const SUPPORTED = /(?:chesstempo\.com|chess\.com|lichess\.org)/
+const SUPPORTED = /(?:chesstempo\.com|lichess\.org)/
 
 async function detect() {
   const tab = await activeTab()
   if (!tab || !SUPPORTED.test(tab.url || '')) {
     fenEl.textContent = ''
-    errEl.textContent = 'Open a ChessTempo, Chess.com or Lichess board first.'
+    errEl.textContent = 'Open a ChessTempo or Lichess board first.'
     return
   }
   chrome.tabs.sendMessage(tab.id, { type: 'GET_FEN' }, (resp) => {
