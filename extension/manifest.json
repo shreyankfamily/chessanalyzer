@@ -6,7 +6,8 @@
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://chesstempo.com/*",
-    "https://*.chesstempo.com/*"
+    "https://*.chesstempo.com/*",
+    "https://shreyankfamily.github.io/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -16,6 +17,11 @@
     {
       "matches": ["https://chesstempo.com/*", "https://*.chesstempo.com/*"],
       "js": ["extract.js", "content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://shreyankfamily.github.io/chessanalyzer/*"],
+      "js": ["bridge.js"],
       "run_at": "document_idle"
     }
   ]

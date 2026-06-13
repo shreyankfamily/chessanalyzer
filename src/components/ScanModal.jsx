@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fileToImage, sliceBoard, getModel, classifyBoard } from '../lib/scan.js'
 import { boardToPlacement } from '../lib/fen.js'
 import { Chessboard } from 'react-chessboard'
 
 const DISPLAY_W = 320
 
-export default function ScanModal({ onClose, onApply }) {
+export default function ScanModal({ onClose, onApply, initialImage }) {
   const [img, setImg] = useState(null)
   const [rect, setRect] = useState(null) // {x,y,size} in natural px
   const [status, setStatus] = useState('') // '', 'training', 'classifying', 'done'
@@ -14,21 +14,35 @@ export default function ScanModal({ onClose, onApply }) {
   const [error, setError] = useState('')
   const fileRef = useRef(null)
 
-  async function onFile(e) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  function loadImageEl(image) {
     setError('')
     setResultFen(null)
     setStatus('')
+    setImg(image)
+    const size = Math.min(image.naturalWidth, image.naturalHeight)
+    setRect({
+      x: Math.round((image.naturalWidth - size) / 2),
+      y: Math.round((image.naturalHeight - size) / 2),
+      size,
+    })
+  }
+
+  // Pre-load an image handed over by the browser extension (a ChessTempo
+  // screenshot). The user then adjusts the crop box like any uploaded image.
+  useEffect(() => {
+    if (!initialImage) return
+    const image = new Image()
+    image.onload = () => loadImageEl(image)
+    image.onerror = () => setError('Could not load the screenshot.')
+    image.src = initialImage
+  }, [initialImage])
+
+  async function onFile(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
     try {
       const image = await fileToImage(file)
-      setImg(image)
-      const size = Math.min(image.naturalWidth, image.naturalHeight)
-      setRect({
-        x: Math.round((image.naturalWidth - size) / 2),
-        y: Math.round((image.naturalHeight - size) / 2),
-        size,
-      })
+      loadImageEl(image)
     } catch {
       setError('Could not load that image.')
     }

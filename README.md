@@ -51,9 +51,17 @@ The `extension/` folder is a Manifest V3 extension (Chrome/Edge/Brave).
 3. It reads the FEN straight from the page and opens it in the app via
    `?fen=...`.
 
+**Screenshot fallback.** If DOM detection misses (e.g. ChessTempo changes its
+markup), the popup also has **📸 Screenshot & scan**: it captures the page,
+stashes it, and opens the app with the image pre-loaded into the scanner so you
+just crop and run the ML scan. Less accurate than DOM reading, but
+selector-agnostic — it always works. The handoff goes through `bridge.js`, a
+content script on the app page that relays the screenshot via `postMessage`.
+
 > Note: ChessTempo's markup changes over time. `extension/extract.js` tries
 > several strategies (copy-FEN fields, inline-script FEN, board DOM). If a
-> redesign breaks detection, the selectors there are where to adjust.
+> redesign breaks detection, the selectors there are where to adjust — or just
+> use the screenshot fallback.
 
 ## How the scan works
 

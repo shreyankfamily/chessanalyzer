@@ -23,6 +23,7 @@ export default function App() {
   const [orientation, setOrientation] = useState('white')
   const [engineOn, setEngineOn] = useState(false)
   const [showScan, setShowScan] = useState(false)
+  const [scanImage, setScanImage] = useState(null) // dataURL from extension
   const [fenInput, setFenInput] = useState(START_FEN)
   const [pgnInput, setPgnInput] = useState('')
   const [boardWidth, setBoardWidth] = useState(360)
@@ -36,6 +37,22 @@ export default function App() {
       setFen(decoded)
       setFenInput(decoded)
     }
+  }, [])
+
+  // The ChessTempo extension hands over a page screenshot via postMessage
+  // (its bridge content script forwards it once the app has loaded).
+  useEffect(() => {
+    function onMsg(e) {
+      if (e.source !== window) return
+      if (e.data?.type === 'CHESSANALYZER_SCAN_IMAGE' && e.data.dataUrl) {
+        setScanImage(e.data.dataUrl)
+        setShowScan(true)
+      }
+    }
+    window.addEventListener('message', onMsg)
+    // Signal the bridge that the app is ready to receive an image.
+    window.postMessage({ type: 'CHESSANALYZER_READY' }, '*')
+    return () => window.removeEventListener('message', onMsg)
   }, [])
 
   useEffect(() => {
@@ -144,7 +161,7 @@ export default function App() {
         </div>
 
         {/* Scan */}
-        <button className="btn primary block" onClick={() => setShowScan(true)}>
+        <button className="btn primary block" onClick={() => { setScanImage(null); setShowScan(true) }}>
           📷 Scan a board image
         </button>
 
@@ -212,7 +229,11 @@ export default function App() {
 
       {showScan && (
         <Suspense fallback={<div className="modal-backdrop"><div className="modal center"><span className="spinner" style={{ borderColor: '#3b82f6', borderTopColor: 'transparent' }} /> Loading scanner…</div></div>}>
-          <ScanModal onClose={() => setShowScan(false)} onApply={applyPlacement} />
+          <ScanModal
+            initialImage={scanImage}
+            onClose={() => { setShowScan(false); setScanImage(null) }}
+            onApply={applyPlacement}
+          />
         </Suspense>
       )}
     </div>

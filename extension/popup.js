@@ -1,3 +1,4 @@
+const APP_URL = 'https://shreyankfamily.github.io/chessanalyzer/'
 const fenEl = document.getElementById('fen')
 const errEl = document.getElementById('err')
 let currentFen = null
@@ -33,6 +34,18 @@ document.getElementById('open').addEventListener('click', async () => {
   const tab = await activeTab()
   chrome.tabs.sendMessage(tab.id, { type: 'OPEN_IN_APP' }, () => {})
   window.close()
+})
+
+document.getElementById('shot').addEventListener('click', async () => {
+  errEl.textContent = ''
+  try {
+    const dataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' })
+    await chrome.storage.local.set({ pendingScreenshot: { dataUrl, ts: Date.now() } })
+    await chrome.tabs.create({ url: `${APP_URL}?scan=ext` })
+    window.close()
+  } catch (e) {
+    errEl.textContent = 'Screenshot failed: ' + e.message
+  }
 })
 
 document.getElementById('copy').addEventListener('click', async () => {
