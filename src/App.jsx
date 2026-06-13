@@ -24,6 +24,8 @@ export default function App() {
   const [engineOn, setEngineOn] = useState(false)
   const [showScan, setShowScan] = useState(false)
   const [scanImage, setScanImage] = useState(null) // dataURL from extension
+  const [moveFrom, setMoveFrom] = useState('') // click-to-move source square
+  const [optionSquares, setOptionSquares] = useState({}) // highlight styles
   const [fenInput, setFenInput] = useState(START_FEN)
   const [pgnInput, setPgnInput] = useState('')
   const [boardWidth, setBoardWidth] = useState(360)
@@ -80,7 +82,8 @@ export default function App() {
     return pvToSan(fen, info.pv)
   }, [info, fen, legal])
 
-  function onPieceDrop(from, to) {
+  // Shared by drag-and-drop and click-to-move.
+  function tryMove(from, to) {
     if (!legal) return false
     const game = new Chess(fen)
     try {
@@ -95,9 +98,65 @@ export default function App() {
     }
   }
 
+  function onPieceDrop(from, to) {
+    const ok = tryMove(from, to)
+    if (ok) clearSelection()
+    return ok
+  }
+
+  function clearSelection() {
+    setMoveFrom('')
+    setOptionSquares({})
+  }
+
+  // Highlight a clicked piece and its legal destination squares.
+  function getMoveOptions(square) {
+    if (!legal) return false
+    const game = new Chess(fen)
+    let moves = []
+    try {
+      moves = game.moves({ square, verbose: true })
+    } catch {
+      moves = []
+    }
+    if (!moves.length) {
+      setOptionSquares({})
+      return false
+    }
+    const squares = {}
+    for (const m of moves) {
+      squares[m.to] = {
+        background:
+          'radial-gradient(circle, rgba(0,0,0,0.25) 24%, transparent 26%)',
+        borderRadius: '50%',
+      }
+    }
+    squares[square] = { background: 'rgba(255, 235, 59, 0.5)' }
+    setOptionSquares(squares)
+    return true
+  }
+
+  // Tap source square, then tap destination.
+  function onSquareClick(square) {
+    if (!legal) return
+    if (!moveFrom) {
+      if (getMoveOptions(square)) setMoveFrom(square)
+      return
+    }
+    if (tryMove(moveFrom, square)) {
+      clearSelection()
+      return
+    }
+    // The move was illegal — treat the click as selecting a new source.
+    if (getMoveOptions(square)) setMoveFrom(square)
+    else clearSelection()
+  }
+
   function applyFen(newFen) {
     setFen(newFen)
     setFenInput(newFen)
+    setMoveFrom('')
+    setOptionSquares({})
   }
 
   function applyPlacement(placement) {
@@ -148,6 +207,8 @@ export default function App() {
               boardOrientation={orientation}
               boardWidth={boardWidth}
               onPieceDrop={onPieceDrop}
+              onSquareClick={onSquareClick}
+              customSquareStyles={optionSquares}
               customArrows={engineOn ? bestArrow : []}
               arePiecesDraggable={legal}
             />

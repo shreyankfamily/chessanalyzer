@@ -17,7 +17,15 @@ export function pvToSan(fen, pvUci, maxPlies = 8) {
       to: uci.slice(2, 4),
       promotion: uci.length > 4 ? uci[4] : undefined,
     }
-    const res = game.move(move)
+    // chess.js v1 THROWS on an illegal move. A stale engine PV can momentarily
+    // be paired with a newer FEN (the position changed before fresh info
+    // arrived), so we must never let this bubble up — it would crash render.
+    let res
+    try {
+      res = game.move(move)
+    } catch {
+      break
+    }
     if (!res) break
     sans.push(res.san)
   }
