@@ -56,10 +56,14 @@ function fromText() {
 //    "wp"/"bn" plus an algebraic square, or background-image piece sprites).
 function fromBoardDom() {
   // Find squares: elements carrying an algebraic-square identifier.
+  // Chess.com renders only the pieces (e.g. "piece wp square-55"), not 64 empty
+  // squares, so we can't gate on the candidate-element count — a mid/endgame has
+  // far fewer than 64. Instead we decode whatever carries a square id and require
+  // a sane number of actual pieces at the end.
   const squareEls = document.querySelectorAll(
     '[data-square], [class*="square-"], [id^="sq_"], [data-key]'
   )
-  if (squareEls.length < 32) return null
+  if (squareEls.length < 2) return null
 
   const grid = {} // 'e4' -> pieceChar
   squareEls.forEach((el) => {
@@ -68,7 +72,10 @@ function fromBoardDom() {
     const piece = pieceOf(el) || pieceOf(el.querySelector('*'))
     if (piece) grid[sq] = piece
   })
-  if (Object.keys(grid).length === 0) return null
+  // A real board always has both kings; this also rejects stray "square-" classes
+  // (utility CSS, highlights) that carry no piece.
+  const pieces = Object.values(grid)
+  if (pieces.length < 2 || !pieces.includes('K') || !pieces.includes('k')) return null
   return normalize(gridToFen(grid))
 }
 
