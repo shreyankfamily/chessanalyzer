@@ -1,6 +1,6 @@
-// Runs on chesstempo.com. Adds a floating button that reads the current
-// position from the page DOM and opens it in ChessAnalyzer. Also answers FEN
-// requests from the popup.
+// Runs on ChessTempo, Chess.com and Lichess. Adds a floating button that reads
+// the current position from the page DOM and opens it in ChessAnalyzer. Also
+// answers FEN requests from the popup.
 
 // Set this to your deployed app once it's live.
 const APP_URL = 'https://shreyankfamily.github.io/chessanalyzer/'

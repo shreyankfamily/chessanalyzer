@@ -72,11 +72,49 @@ function fromBoardDom() {
   return normalize(gridToFen(grid))
 }
 
+// 4b) Lichess (and other chessground-based sites) render pieces with CSS
+//     transforms instead of per-square classes, so we map each piece's pixel
+//     offset back to a board square. Orientation is read from the wrapper.
+function fromChessground() {
+  const board = document.querySelector('cg-board')
+  if (!board) return null
+  const pieces = board.querySelectorAll('piece')
+  if (pieces.length < 2) return null
+
+  const size = board.getBoundingClientRect().width || board.offsetWidth
+  if (!size) return null
+  const sq = size / 8
+
+  const wrap = board.closest('.cg-wrap') || board.parentElement
+  const blackOrientation =
+    (wrap && wrap.className && /orientation-black/.test(wrap.className)) || false
+
+  const grid = {}
+  pieces.forEach((p) => {
+    const piece = pieceOf(p)
+    if (!piece) return
+    const t = p.style.transform || ''
+    const m = t.match(/translate(?:3d)?\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px/)
+    if (!m) return
+    let col = Math.round(parseFloat(m[1]) / sq) // 0..7 from left edge
+    let row = Math.round(parseFloat(m[2]) / sq) // 0..7 from top edge
+    if (col < 0 || col > 7 || row < 0 || row > 7) return
+    const file = blackOrientation ? 7 - col : col
+    const rank = blackOrientation ? row : 7 - row
+    grid['abcdefgh'[file] + (rank + 1)] = piece
+  })
+  if (Object.keys(grid).length === 0) return null
+  return normalize(gridToFen(grid))
+}
+
 function squareOf(el) {
   if (!el) return null
   const ds = el.getAttribute && (el.getAttribute('data-square') || el.getAttribute('data-key'))
   if (ds && /^[a-h][1-8]$/.test(ds)) return ds
   const cls = (el.className || '') + ' ' + (el.id || '')
+  // chess.com encodes the square numerically: "square-55" => file 5, rank 5 => e5.
+  const num = cls.match(/square-([1-8])([1-8])\b/)
+  if (num) return 'abcdefgh'[+num[1] - 1] + num[2]
   const m = cls.match(/(?:square-|sq_)?([a-h][1-8])\b/)
   return m ? m[1] : null
 }
@@ -138,7 +176,7 @@ function normalize(s) {
 }
 
 function extractFen() {
-  return fromGlobals() || fromFields() || fromText() || fromBoardDom() || null
+  return fromGlobals() || fromFields() || fromText() || fromChessground() || fromBoardDom() || null
 }
 
 // Expose for the content script / popup messaging.

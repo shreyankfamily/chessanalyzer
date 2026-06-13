@@ -8,16 +8,18 @@ async function activeTab() {
   return tab
 }
 
+const SUPPORTED = /(?:chesstempo\.com|chess\.com|lichess\.org)/
+
 async function detect() {
   const tab = await activeTab()
-  if (!tab || !/chesstempo\.com/.test(tab.url || '')) {
+  if (!tab || !SUPPORTED.test(tab.url || '')) {
     fenEl.textContent = ''
-    errEl.textContent = 'Open a ChessTempo board first.'
+    errEl.textContent = 'Open a ChessTempo, Chess.com or Lichess board first.'
     return
   }
   chrome.tabs.sendMessage(tab.id, { type: 'GET_FEN' }, (resp) => {
     if (chrome.runtime.lastError) {
-      errEl.textContent = 'Reload the ChessTempo tab, then reopen.'
+      errEl.textContent = 'Reload the chess tab, then reopen.'
       return
     }
     if (resp?.fen) {

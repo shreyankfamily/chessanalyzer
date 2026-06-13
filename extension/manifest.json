@@ -1,12 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "ChessAnalyzer ↔ ChessTempo Bridge",
-  "version": "0.1.0",
-  "description": "Reads the live chess position from ChessTempo's page (no screenshots) and opens it in ChessAnalyzer for engine analysis.",
+  "name": "ChessAnalyzer Bridge",
+  "version": "0.2.0",
+  "description": "Reads the live chess position from ChessTempo, Chess.com or Lichess (no screenshots) and opens it in ChessAnalyzer for engine analysis.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://chesstempo.com/*",
     "https://*.chesstempo.com/*",
+    "https://www.chess.com/*",
+    "https://*.chess.com/*",
+    "https://lichess.org/*",
+    "https://*.lichess.org/*",
     "https://shreyankfamily.github.io/*"
   ],
   "action": {
@@ -15,7 +19,14 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chesstempo.com/*", "https://*.chesstempo.com/*"],
+      "matches": [
+        "https://chesstempo.com/*",
+        "https://*.chesstempo.com/*",
+        "https://www.chess.com/*",
+        "https://*.chess.com/*",
+        "https://lichess.org/*",
+        "https://*.lichess.org/*"
+      ],
       "js": ["extract.js", "content.js"],
       "run_at": "document_idle"
     },

@@ -45,28 +45,34 @@ publishes to Pages. One-time setup in the repo:
 The Vite `base` is set to `/chessanalyzer/` in `vite.config.js`; change it if
 you rename the repo.
 
-## ChessTempo extension
+## Browser bridge extension
 
-The `extension/` folder is a Manifest V3 extension (Chrome/Edge/Brave).
+The `extension/` folder is a Manifest V3 extension (Chrome/Edge/Brave) that
+works on **ChessTempo**, **Chess.com** and **Lichess**.
 
 1. `chrome://extensions` → enable **Developer mode** → **Load unpacked** →
    select the `extension/` folder.
-2. Open any board on chesstempo.com. A floating **"Analyze in ChessAnalyzer"**
-   button appears (or use the toolbar popup).
+2. Open any board on chesstempo.com, chess.com or lichess.org. A floating
+   **"Analyze in ChessAnalyzer"** button appears (or use the toolbar popup).
 3. It reads the FEN straight from the page and opens it in the app via
    `?fen=...`.
 
-**Screenshot fallback.** If DOM detection misses (e.g. ChessTempo changes its
+**Per-site detection.** `extension/extract.js` tries several strategies in
+order: known globals, copy-FEN fields, inline-script FEN, the Lichess/
+chessground board (pieces positioned by CSS transform, orientation-aware),
+then a generic board-DOM reader that also understands Chess.com's numeric
+`square-NN` piece classes.
+
+**Screenshot fallback.** If DOM detection misses (e.g. a site changes its
 markup), the popup also has **📸 Screenshot & scan**: it captures the page,
 stashes it, and opens the app with the image pre-loaded into the scanner so you
 just crop and run the ML scan. Less accurate than DOM reading, but
 selector-agnostic — it always works. The handoff goes through `bridge.js`, a
 content script on the app page that relays the screenshot via `postMessage`.
 
-> Note: ChessTempo's markup changes over time. `extension/extract.js` tries
-> several strategies (copy-FEN fields, inline-script FEN, board DOM). If a
-> redesign breaks detection, the selectors there are where to adjust — or just
-> use the screenshot fallback.
+> Note: these sites' markup changes over time. If a redesign breaks detection,
+> the strategies in `extension/extract.js` are where to adjust — or just use
+> the screenshot fallback.
 
 ## How the scan works
 
