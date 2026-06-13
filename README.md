@@ -16,6 +16,11 @@ bridge.
   (drawn as an arrow), evaluation, and principal variation. Uses a
   single-threaded build so it runs on GitHub Pages (no COOP/COEP headers
   needed).
+- **Plain-English move explanations.** A rule-based layer (`src/lib/explain.js`)
+  turns the engine's eval + the concrete move into a sentence: why the
+  recommended move is best, and — after you play — whether your move was best /
+  an inaccuracy / mistake / blunder, by how much, what the engine preferred, and
+  any piece you left hanging. No LLM/API key; derived entirely from Stockfish.
 - **Open analysis anywhere.** One tap to load the current position into
   **Lichess**, **Chess.com**, or **ChessTempo**.
 - **FEN / PGN** load, edit, and copy. Swap side-to-move, flip, reset, clear.

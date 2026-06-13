@@ -5,6 +5,7 @@ import { START_FEN, EMPTY_FEN, withTurn, getTurn } from './lib/fen.js'
 import { lichessUrl, chessComUrl, chessTempoUrl } from './lib/links.js'
 import { useEngine } from './lib/useEngine.js'
 import { pvToSan } from './lib/pv.js'
+import { explainBestMove, gradeMove } from './lib/explain.js'
 
 // Code-split: TensorFlow.js (~1.4MB) only loads when the user opens the scanner.
 const ScanModal = lazy(() => import('./components/ScanModal.jsx'))
@@ -26,6 +27,8 @@ export default function App() {
   const [scanImage, setScanImage] = useState(null) // dataURL from extension
   const [moveFrom, setMoveFrom] = useState('') // click-to-move source square
   const [optionSquares, setOptionSquares] = useState({}) // highlight styles
+  const [lastPlayed, setLastPlayed] = useState(null) // snapshot at move time
+  const [moveGrade, setMoveGrade] = useState(null) // { label, text }
   const [fenInput, setFenInput] = useState(START_FEN)
   const [pgnInput, setPgnInput] = useState('')
   const [boardWidth, setBoardWidth] = useState(360)
@@ -82,6 +85,38 @@ export default function App() {
     return pvToSan(fen, info.pv)
   }, [info, fen, legal])
 
+  // Why is the engine's recommended move best? Wait for a stable depth so we
+  // don't flash a misleading shallow eval.
+  const bestExplanation = useMemo(() => {
+    if (!bestMove || !legal || !info) return ''
+    const settled = info.scoreMate != null || (info.depth ?? 0) >= 10
+    if (!settled) return ''
+    return explainBestMove(fen, bestMove, { cp: info.scoreCp, mate: info.scoreMate })
+  }, [fen, bestMove, info, legal])
+
+  // Grade the move the player just made, once the engine has evaluated the
+  // resulting position to a stable depth.
+  useEffect(() => {
+    if (!engineOn || !lastPlayed) return
+    if (fen !== lastPlayed.afterFen) return // info must be for the new position
+    if (!lastPlayed.beforeScore || !info) return
+    const settled = info.scoreMate != null || (info.depth ?? 0) >= 12
+    if (!settled) return
+    setMoveGrade(
+      gradeMove({
+        beforeFen: lastPlayed.beforeFen,
+        afterFen: lastPlayed.afterFen,
+        playedUci: lastPlayed.playedUci,
+        playedSan: lastPlayed.playedSan,
+        bestUci: lastPlayed.bestUci,
+        beforeScore: lastPlayed.beforeScore,
+        afterScore: { cp: info.scoreCp, mate: info.scoreMate },
+        afterPv: info.pv,
+        moverTurn: lastPlayed.moverTurn,
+      })
+    )
+  }, [info, fen, lastPlayed, engineOn])
+
   // Shared by drag-and-drop and click-to-move.
   function tryMove(from, to) {
     if (!legal) return false
@@ -90,6 +125,18 @@ export default function App() {
       const move = game.move({ from, to, promotion: 'q' })
       if (!move) return false
       const nf = game.fen()
+      // Snapshot the engine's read of THIS position so we can grade the move
+      // once the engine evaluates the resulting one.
+      setLastPlayed({
+        beforeFen: fen,
+        afterFen: nf,
+        playedUci: from + to + (move.promotion || ''),
+        playedSan: move.san,
+        bestUci: bestMove,
+        beforeScore: info ? { cp: info.scoreCp, mate: info.scoreMate } : null,
+        moverTurn: turn,
+      })
+      setMoveGrade(null)
       setFen(nf)
       setFenInput(nf)
       return true
@@ -157,6 +204,8 @@ export default function App() {
     setFenInput(newFen)
     setMoveFrom('')
     setOptionSquares({})
+    setLastPlayed(null)
+    setMoveGrade(null)
   }
 
   function applyPlacement(placement) {
@@ -252,7 +301,20 @@ export default function App() {
                   <span className="muted">{thinking ? 'Thinking…' : 'No move'}</span>
                 )}
               </div>
+              {bestExplanation && (
+                <div className="explain" style={{ marginTop: 6 }}>{bestExplanation}</div>
+              )}
               {pvText && <div className="eval-line" style={{ marginTop: 6 }}>{pvText}</div>}
+            </div>
+          )}
+
+          {engineOn && lastPlayed && (
+            <div className={`grade grade-${(moveGrade?.label || 'pending').toLowerCase()}`} style={{ marginTop: 12 }}>
+              {moveGrade ? (
+                <><span className="grade-label">{moveGrade.label}</span> {moveGrade.text}</>
+              ) : (
+                <span className="muted">Evaluating your move…</span>
+              )}
             </div>
           )}
         </div>

@@ -123,6 +123,22 @@ textarea, input[type=text], input[type=password] {
 
 .turn-pill { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: #eef2ff; color: var(--header-2); font-weight: 600; }
 
+.explain { font-size: 14px; color: var(--text); line-height: 1.4; }
+
+.grade { font-size: 14px; line-height: 1.4; border-radius: 8px; padding: 10px 12px; border-left: 4px solid var(--muted); background: #f9fafb; }
+.grade-label { font-weight: 700; margin-right: 4px; }
+.grade-best { border-left-color: #16a34a; background: #f0fdf4; }
+.grade-best .grade-label { color: #16a34a; }
+.grade-good { border-left-color: #16a34a; background: #f0fdf4; }
+.grade-good .grade-label { color: #16a34a; }
+.grade-inaccuracy { border-left-color: #d97706; background: #fffbeb; }
+.grade-inaccuracy .grade-label { color: #d97706; }
+.grade-mistake { border-left-color: #ea580c; background: #fff7ed; }
+.grade-mistake .grade-label { color: #ea580c; }
+.grade-blunder { border-left-color: #dc2626; background: #fef2f2; }
+.grade-blunder .grade-label { color: #dc2626; }
+.grade-pending { border-left-color: var(--border); }
+
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
   display: flex; align-items: flex-start; justify-content: center;
