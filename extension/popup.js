@@ -52,9 +52,12 @@ async function updateAutoButtonState() {
 
 async function checkServerStatus() {
   const statusEl = document.getElementById('serverStatus')
+  const { serverUrl } = await chrome.storage.local.get('serverUrl')
+  const url = serverUrl || 'http://localhost:3000'
+
   try {
     const response = await Promise.race([
-      fetch('http://localhost:3000/api/puzzle'),
+      fetch(url + '/api/puzzle'),
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
     ])
     if (response.ok) {
