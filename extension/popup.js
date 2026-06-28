@@ -1,6 +1,7 @@
 const APP_URL = 'https://shreyankfamily.github.io/chessanalyzer/'
 const fenEl = document.getElementById('fen')
 const errEl = document.getElementById('err')
+const autoBtn = document.getElementById('auto')
 let currentFen = null
 
 async function activeTab() {
@@ -32,10 +33,28 @@ async function detect() {
   })
 }
 
+async function updateAutoButtonState() {
+  const { autoModeEnabled } = await chrome.storage.local.get('autoModeEnabled')
+  if (autoModeEnabled) {
+    autoBtn.classList.add('active')
+    autoBtn.textContent = '✓ Auto ON'
+  } else {
+    autoBtn.classList.remove('active')
+    autoBtn.textContent = 'Auto OFF'
+  }
+}
+
 document.getElementById('open').addEventListener('click', async () => {
   const tab = await activeTab()
   chrome.tabs.sendMessage(tab.id, { type: 'OPEN_IN_APP' }, () => {})
   window.close()
+})
+
+autoBtn.addEventListener('click', async () => {
+  const { autoModeEnabled } = await chrome.storage.local.get('autoModeEnabled')
+  const newState = !autoModeEnabled
+  await chrome.storage.local.set({ autoModeEnabled: newState })
+  updateAutoButtonState()
 })
 
 document.getElementById('shot').addEventListener('click', async () => {
@@ -58,3 +77,4 @@ document.getElementById('copy').addEventListener('click', async () => {
 })
 
 detect()
+updateAutoButtonState()

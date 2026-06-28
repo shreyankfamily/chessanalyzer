@@ -14,9 +14,43 @@ function getFen() {
   }
 }
 
+function getOrientation() {
+  // Detect board orientation from lichess
+  const wrap = document.querySelector('.cg-wrap')
+  if (wrap && wrap.className && /orientation-black/.test(wrap.className)) {
+    return 'black'
+  }
+  return 'white'
+}
+
 function openInApp(fen) {
   const url = `${APP_URL}?fen=${encodeURIComponent(fen)}`
   window.open(url, '_blank', 'noopener')
+}
+
+// Send auto-update to app window if it's open
+function pushUpdateToApp(fen) {
+  const orientation = getOrientation()
+  window.postMessage({
+    type: 'CHESSANALYZER_AUTO_UPDATE',
+    fen,
+    orientation,
+  }, '*')
+}
+
+let lastSentFen = null
+
+function startAutoMonitor() {
+  setInterval(async () => {
+    const { autoModeEnabled } = await chrome.storage.local.get('autoModeEnabled')
+    if (!autoModeEnabled) return
+
+    const fen = getFen()
+    if (fen && fen !== lastSentFen) {
+      lastSentFen = fen
+      pushUpdateToApp(fen)
+    }
+  }, 500)
 }
 
 function injectButton() {
@@ -49,6 +83,7 @@ function injectButton() {
     openInApp(fen)
   })
   document.body.appendChild(btn)
+  startAutoMonitor()
 }
 
 // Let the popup request the FEN.

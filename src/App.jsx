@@ -22,7 +22,7 @@ function isLegalFen(fen) {
 export default function App() {
   const [fen, setFen] = useState(START_FEN)
   const [orientation, setOrientation] = useState('white')
-  const [engineOn, setEngineOn] = useState(false)
+  const [engineOn, setEngineOn] = useState(true)
   const [showScan, setShowScan] = useState(false)
   const [scanImage, setScanImage] = useState(null) // dataURL from extension
   const [moveFrom, setMoveFrom] = useState('') // click-to-move source square
@@ -32,6 +32,8 @@ export default function App() {
   const [fenInput, setFenInput] = useState(START_FEN)
   const [pgnInput, setPgnInput] = useState('')
   const [boardWidth, setBoardWidth] = useState(360)
+  const [moveHistory, setMoveHistory] = useState([START_FEN]) // track all positions
+  const [moveIndex, setMoveIndex] = useState(0) // current position in history
 
   // Load a position passed by the ChessTempo extension via ?fen=...
   useEffect(() => {
@@ -52,6 +54,20 @@ export default function App() {
       if (e.data?.type === 'CHESSANALYZER_SCAN_IMAGE' && e.data.dataUrl) {
         setScanImage(e.data.dataUrl)
         setShowScan(true)
+      } else if (e.data?.type === 'CHESSANALYZER_AUTO_UPDATE' && e.data.fen) {
+        // Auto-update from extension when page changes
+        const newFen = e.data.fen
+        setFen(newFen)
+        setFenInput(newFen)
+        setMoveFrom('')
+        setOptionSquares({})
+        setLastPlayed(null)
+        setMoveGrade(null)
+        setMoveHistory([newFen])
+        setMoveIndex(0)
+        if (e.data.orientation && ['white', 'black'].includes(e.data.orientation)) {
+          setOrientation(e.data.orientation)
+        }
       }
     }
     window.addEventListener('message', onMsg)
@@ -137,6 +153,11 @@ export default function App() {
         moverTurn: turn,
       })
       setMoveGrade(null)
+      // Update move history
+      const newHistory = moveHistory.slice(0, moveIndex + 1)
+      newHistory.push(nf)
+      setMoveHistory(newHistory)
+      setMoveIndex(newHistory.length - 1)
       setFen(nf)
       setFenInput(nf)
       return true
@@ -206,6 +227,9 @@ export default function App() {
     setOptionSquares({})
     setLastPlayed(null)
     setMoveGrade(null)
+    // Reset move history when a new position is loaded
+    setMoveHistory([newFen])
+    setMoveIndex(0)
   }
 
   function applyPlacement(placement) {
@@ -263,6 +287,26 @@ export default function App() {
             />
           </div>
           <div className="toolbar" style={{ marginTop: 10 }}>
+            <button className="icon-btn" title="Back" onClick={() => {
+              if (moveIndex > 0) {
+                const newIndex = moveIndex - 1
+                setMoveIndex(newIndex)
+                setFen(moveHistory[newIndex])
+                setFenInput(moveHistory[newIndex])
+                setMoveFrom('')
+                setOptionSquares({})
+              }
+            }} disabled={moveIndex === 0}>◀</button>
+            <button className="icon-btn" title="Forward" onClick={() => {
+              if (moveIndex < moveHistory.length - 1) {
+                const newIndex = moveIndex + 1
+                setMoveIndex(newIndex)
+                setFen(moveHistory[newIndex])
+                setFenInput(moveHistory[newIndex])
+                setMoveFrom('')
+                setOptionSquares({})
+              }
+            }} disabled={moveIndex === moveHistory.length - 1}>▶</button>
             <button className="icon-btn" title="Flip board" onClick={() => setOrientation((o) => (o === 'white' ? 'black' : 'white'))}>⇅</button>
             <button className="icon-btn" title="Swap side to move" onClick={toggleTurn}>♟⇄</button>
             <button className="icon-btn" title="Starting position" onClick={() => applyFen(START_FEN)}>⟲</button>
