@@ -16,10 +16,9 @@ module.exports = {
       kill_timeout: 5000,
       wait_ready: true,
       listen_timeout: 3000,
-      // Logs
-      merge_logs: true,
-      output: './server.log',
-      error: './server-error.log',
+      // NO LOGGING - send to /dev/null to avoid filling disk
+      output: '/dev/null',
+      error: '/dev/null',
       // Keep process alive even if it crashes
       max_restarts: 10,
       min_uptime: '10s'
