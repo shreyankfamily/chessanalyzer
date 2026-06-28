@@ -44,6 +44,27 @@ async function updateAutoButtonState() {
   }
 }
 
+async function checkServerStatus() {
+  const statusEl = document.getElementById('serverStatus')
+  try {
+    const response = await Promise.race([
+      fetch('http://localhost:3000/api/puzzle'),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+    ])
+    if (response.ok) {
+      statusEl.textContent = '✓ Local server running'
+      statusEl.classList.remove('offline')
+      statusEl.classList.add('running')
+      return
+    }
+  } catch (e) {
+    // Server not responding
+  }
+  statusEl.textContent = '⚠ Local server offline'
+  statusEl.classList.remove('running')
+  statusEl.classList.add('offline')
+}
+
 document.getElementById('open').addEventListener('click', async () => {
   const tab = await activeTab()
   chrome.tabs.sendMessage(tab.id, { type: 'OPEN_IN_APP' }, () => {})
@@ -78,3 +99,4 @@ document.getElementById('copy').addEventListener('click', async () => {
 
 detect()
 updateAutoButtonState()
+checkServerStatus()

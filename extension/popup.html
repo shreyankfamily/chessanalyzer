@@ -13,12 +13,16 @@
       #auto { width: 100%; margin-top: 10px; padding: 10px; font-size: 20px; background: #eef2ff; color: #2a1a6e; }
       #auto.active { background: #16a34a; color: #fff; }
       #auto:hover { opacity: 0.8; }
+      .server-status { padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 12px; }
+      .server-status.running { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+      .server-status.offline { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
       .err { color: #e11d48; font-size: 12px; }
     </style>
   </head>
   <body>
     <h1>ChessAnalyzer Bridge</h1>
     <p>Reads the live position from ChessTempo or Lichess (no screenshots).</p>
+    <div id="serverStatus" class="server-status offline">⚠ Local server offline</div>
     <div id="fen" class="fen">Detecting…</div>
     <button id="auto" title="Toggle auto-sync to mobile (▶ = off, ⏸ = on)">▶</button>
     <button id="open" class="primary">Open in ChessAnalyzer</button>

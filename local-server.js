@@ -58,6 +58,15 @@ const server = http.createServer((req, res) => {
     return
   }
 
+  // API endpoint: stop the server
+  if (pathname === '/api/stop' && req.method === 'POST') {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ ok: true }))
+    console.log('Server stopping...')
+    setTimeout(() => process.exit(0), 500)
+    return
+  }
+
   // Serve the mirror page
   if (pathname === '/' || pathname === '/index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html' })
@@ -161,6 +170,7 @@ const server = http.createServer((req, res) => {
 
     <button class="btn" id="analyzerBtn" onclick="toggleAnalyzer()">📊 Open in Analyzer</button>
     <button class="btn secondary" onclick="copyFen()">📋 Copy FEN</button>
+    <button class="btn secondary" onclick="stopServer()" style="background: #fecaca; color: #7f1d1d;">⏹ Stop Server</button>
 
     <div class="fen-display" id="fenDisplay">Waiting for puzzle...</div>
 
@@ -284,6 +294,14 @@ const server = http.createServer((req, res) => {
           btn.textContent = originalText
         }, 2000)
       })
+    }
+
+    function stopServer() {
+      if (confirm('Stop the server? You can restart it from the terminal.')) {
+        fetch('/api/stop', { method: 'POST' }).then(() => {
+          document.body.innerHTML = '<div style="text-align: center; padding: 40px;"><h2>Server stopped</h2><p>Restart it from the terminal:</p><code style="background: #f3f4f6; padding: 10px; display: block; margin: 20px 0;">node local-server.js</code></div>'
+        }).catch(e => alert('Error stopping server: ' + e.message))
+      }
     }
 
     // Poll for updates every second
