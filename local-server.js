@@ -126,6 +126,7 @@ const server = http.createServer((req, res) => {
     <p style="color: #6b7280; margin: 0 0 20px;">Puzzle Mirror</p>
 
     <div class="status" id="status">Connecting...</div>
+    <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;" id="turnDisplay">Loading...</div>
 
     <button class="btn" onclick="openInAnalyzer()">📊 Open in Analyzer</button>
     <button class="btn" onclick="copyFen()">📋 Copy FEN</button>
@@ -143,6 +144,11 @@ const server = http.createServer((req, res) => {
     let currentFen = null
     let lastUpdateTime = null
 
+    function getTurnFromFen(fen) {
+      const parts = fen.split(' ')
+      return parts[1] === 'b' ? 'black' : 'white'
+    }
+
     async function fetchPuzzle() {
       try {
         const response = await fetch('/api/puzzle')
@@ -151,6 +157,11 @@ const server = http.createServer((req, res) => {
 
         const fenDisplay = document.getElementById('fenDisplay')
         fenDisplay.textContent = data.fen
+
+        const turn = getTurnFromFen(data.fen)
+        const turnDisplay = document.getElementById('turnDisplay')
+        turnDisplay.textContent = turn === 'white' ? '♔ White to move' : '♚ Black to move'
+        turnDisplay.style.color = turn === 'white' ? '#2a1a6e' : '#1f2937'
 
         const status = document.getElementById('status')
         status.textContent = '✓ Connected'

@@ -43,6 +43,11 @@ export default function App() {
       const decoded = decodeURIComponent(qf)
       setFen(decoded)
       setFenInput(decoded)
+      setMoveHistory([decoded])
+      setMoveIndex(0)
+      // Auto-flip board based on whose turn it is
+      const turn = getTurn(decoded)
+      setOrientation(turn === 'w' ? 'white' : 'black')
     }
   }, [])
 
