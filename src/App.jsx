@@ -65,9 +65,6 @@ export default function App() {
         setMoveGrade(null)
         setMoveHistory([newFen])
         setMoveIndex(0)
-        if (e.data.orientation && ['white', 'black'].includes(e.data.orientation)) {
-          setOrientation(e.data.orientation)
-        }
       }
     }
     window.addEventListener('message', onMsg)
