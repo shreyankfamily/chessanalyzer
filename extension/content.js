@@ -16,11 +16,12 @@ function getFen() {
 
 function getOrientation() {
   // Detect board orientation from lichess
+  // orientation-black class means board is flipped (black at bottom visually)
   const wrap = document.querySelector('.cg-wrap')
   if (wrap && wrap.className && /orientation-black/.test(wrap.className)) {
-    return 'black'
+    return 'white'  // flipped view shows white at bottom
   }
-  return 'white'
+  return 'black'  // normal view shows black at bottom
 }
 
 function openInApp(fen) {
