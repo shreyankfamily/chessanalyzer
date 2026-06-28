@@ -160,11 +160,33 @@ function gridToFen(grid) {
   return ranks.join('/')
 }
 
+// Detect whose turn it is from the lichess page
+function detectTurn() {
+  // Look for "White to move" or "Black to move" text on the page
+  const bodyText = document.body.innerText || ''
+  if (/black.*to.*move|your turn.*black/i.test(bodyText)) {
+    return 'b'
+  }
+  if (/white.*to.*move|your turn.*white/i.test(bodyText)) {
+    return 'w'
+  }
+  // Check for specific lichess elements
+  const turnIndicator = document.querySelector('[data-testid="move-indicator"]') ||
+                        document.querySelector('.active-turn')
+  if (turnIndicator) {
+    const text = turnIndicator.textContent || ''
+    if (/black/i.test(text)) return 'b'
+    if (/white/i.test(text)) return 'w'
+  }
+  return null
+}
+
 // Ensure a complete, legal-ish FEN (add side/castling/ep/clocks if missing).
 function normalize(s) {
   const parts = s.trim().split(/\s+/)
   const placement = parts[0]
-  const turn = parts[1] && /^[wb]$/.test(parts[1]) ? parts[1] : 'w'
+  // Try to get turn from existing FEN first, then detect from page, then default to white
+  let turn = parts[1] && /^[wb]$/.test(parts[1]) ? parts[1] : (detectTurn() || 'w')
   const castle = parts[2] || '-'
   const ep = parts[3] || '-'
   const half = parts[4] || '0'
