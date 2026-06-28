@@ -40,6 +40,23 @@ function pushUpdateToApp(fen) {
 
 let lastSentFen = null
 
+function sendToLocalServer(fen) {
+  // Try to send puzzle to local server for mobile mirroring
+  // User runs: node local-server.js on their laptop
+  const localServers = ['http://localhost:3000', 'http://127.0.0.1:3000']
+
+  for (const server of localServers) {
+    fetch(server + '/api/puzzle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fen,
+        orientation: getOrientation(),
+      }),
+    }).catch(() => {}) // silently ignore if server not running
+  }
+}
+
 function startAutoMonitor() {
   setInterval(async () => {
     const { autoModeEnabled } = await chrome.storage.local.get('autoModeEnabled')
@@ -48,6 +65,7 @@ function startAutoMonitor() {
     const fen = getFen()
     if (fen && fen !== lastSentFen) {
       lastSentFen = fen
+      sendToLocalServer(fen)
       pushUpdateToApp(fen)
     }
   }, 500)
