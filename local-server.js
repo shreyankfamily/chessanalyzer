@@ -176,6 +176,7 @@ const server = http.createServer((req, res) => {
   <script>
     const ANALYZER_URL = 'https://shreyankfamily.github.io/chessanalyzer/'
     let currentFen = null
+    let previousFen = null
     let lastUpdateTime = null
     let analyzerOpen = false
 
@@ -223,19 +224,26 @@ const server = http.createServer((req, res) => {
       try {
         const response = await fetch('/api/puzzle')
         const data = await response.json()
-        currentFen = data.fen
+        const fen = data.fen
+
+        // Only update if FEN changed
+        if (fen === currentFen) {
+          return
+        }
+
+        currentFen = fen
 
         const fenDisplay = document.getElementById('fenDisplay')
-        fenDisplay.textContent = data.fen
+        fenDisplay.textContent = fen
 
-        const turn = getTurnFromFen(data.fen)
+        const turn = getTurnFromFen(fen)
         const turnDisplay = document.getElementById('turnDisplay')
         turnDisplay.textContent = turn === 'white' ? '♔ White to move' : '♚ Black to move'
         turnDisplay.style.color = turn === 'white' ? '#2a1a6e' : '#1f2937'
 
         // Update analyzer iframe if it's open
         if (analyzerOpen) {
-          const analyzerUrl = ANALYZER_URL + '?fen=' + encodeURIComponent(data.fen)
+          const analyzerUrl = ANALYZER_URL + '?fen=' + encodeURIComponent(fen)
           document.getElementById('analyzerFrame').src = analyzerUrl
         }
 
