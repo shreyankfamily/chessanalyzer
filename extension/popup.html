@@ -10,8 +10,9 @@
       button { width: 100%; margin-top: 10px; padding: 10px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
       .primary { background: #2a1a6e; color: #fff; }
       .secondary { background: #eef2ff; color: #2a1a6e; }
-      #auto { width: 100%; margin-top: 10px; padding: 10px; font-size: 14px; background: #eef2ff; color: #2a1a6e; }
+      #auto { width: 100%; margin-top: 10px; padding: 10px; font-size: 20px; background: #eef2ff; color: #2a1a6e; }
       #auto.active { background: #16a34a; color: #fff; }
+      #auto:hover { opacity: 0.8; }
       .err { color: #e11d48; font-size: 12px; }
     </style>
   </head>
@@ -19,7 +20,7 @@
     <h1>ChessAnalyzer Bridge</h1>
     <p>Reads the live position from ChessTempo or Lichess (no screenshots).</p>
     <div id="fen" class="fen">Detecting…</div>
-    <button id="auto">Auto OFF</button>
+    <button id="auto" title="Toggle auto-sync to mobile (▶ = off, ⏸ = on)">▶</button>
     <button id="open" class="primary">Open in ChessAnalyzer</button>
     <button id="copy" class="secondary">Copy FEN</button>
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0" />

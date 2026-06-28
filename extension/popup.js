@@ -37,10 +37,10 @@ async function updateAutoButtonState() {
   const { autoModeEnabled } = await chrome.storage.local.get('autoModeEnabled')
   if (autoModeEnabled) {
     autoBtn.classList.add('active')
-    autoBtn.textContent = '✓ Auto ON'
+    autoBtn.textContent = '⏸'
   } else {
     autoBtn.classList.remove('active')
-    autoBtn.textContent = 'Auto OFF'
+    autoBtn.textContent = '▶'
   }
 }
 
