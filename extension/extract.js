@@ -160,24 +160,28 @@ function gridToFen(grid) {
   return ranks.join('/')
 }
 
-// Detect whose turn it is from the lichess page
+// Detect whose turn it is from the board orientation or page content
 function detectTurn() {
-  // Look for "White to move" or "Black to move" text on the page
-  const bodyText = document.body.innerText || ''
-  if (/black.*to.*move|your turn.*black/i.test(bodyText)) {
+  // In lichess puzzles, the board orientation usually matches whose turn it is
+  // If board is flipped (orientation-black), it's black to move
+  const wrap = document.querySelector('.cg-wrap')
+  if (wrap && wrap.className) {
+    if (/orientation-black/.test(wrap.className)) {
+      return 'b'  // Board is flipped, so black to move
+    } else {
+      return 'w'  // Board is normal, so white to move
+    }
+  }
+
+  // Fallback: look for text indicators
+  const bodyText = (document.body.innerText || '').toLowerCase()
+  if (/black.*move|find.*best.*move.*black/.test(bodyText)) {
     return 'b'
   }
-  if (/white.*to.*move|your turn.*white/i.test(bodyText)) {
+  if (/white.*move|find.*best.*move.*white/.test(bodyText)) {
     return 'w'
   }
-  // Check for specific lichess elements
-  const turnIndicator = document.querySelector('[data-testid="move-indicator"]') ||
-                        document.querySelector('.active-turn')
-  if (turnIndicator) {
-    const text = turnIndicator.textContent || ''
-    if (/black/i.test(text)) return 'b'
-    if (/white/i.test(text)) return 'w'
-  }
+
   return null
 }
 
