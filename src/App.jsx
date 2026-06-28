@@ -312,8 +312,6 @@ export default function App() {
                 setOptionSquares({})
               }
             }} disabled={moveIndex === moveHistory.length - 1}>▶</button>
-            <button className="icon-btn" title="Flip board" onClick={() => setOrientation((o) => (o === 'white' ? 'black' : 'white'))}>⇅</button>
-            <button className="icon-btn" title="Swap side to move" onClick={toggleTurn}>♟⇄</button>
             <button className="icon-btn" title="Starting position" onClick={() => applyFen(START_FEN)}>⟲</button>
             <button className="icon-btn" title="Clear board" onClick={() => applyFen(EMPTY_FEN)}>▢</button>
           </div>
