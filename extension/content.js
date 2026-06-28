@@ -40,14 +40,12 @@ function pushUpdateToApp(fen) {
 
 let lastSentFen = null
 
-async function sendToLocalServer(fen) {
+function sendToLocalServer(fen) {
   // Try to send puzzle to local server for mobile mirroring
-  const { serverUrl } = await chrome.storage.local.get('serverUrl')
-  const servers = serverUrl
-    ? [serverUrl]  // Use custom server if set
-    : ['http://localhost:3000', 'http://127.0.0.1:3000']  // Otherwise try localhost variants
+  // User runs: node local-server.js on their laptop
+  const localServers = ['http://localhost:3000', 'http://127.0.0.1:3000']
 
-  for (const server of servers) {
+  for (const server of localServers) {
     fetch(server + '/api/puzzle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

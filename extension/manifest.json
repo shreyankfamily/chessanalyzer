@@ -15,7 +15,6 @@
     "default_popup": "popup.html",
     "default_title": "ChessAnalyzer Bridge"
   },
-  "options_page": "options.html",
   "content_scripts": [
     {
       "matches": [
