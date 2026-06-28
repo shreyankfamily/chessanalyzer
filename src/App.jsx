@@ -65,6 +65,9 @@ export default function App() {
         setMoveGrade(null)
         setMoveHistory([newFen])
         setMoveIndex(0)
+        // Auto-flip board based on whose turn it is
+        const moveTurn = getTurn(newFen)
+        setOrientation(moveTurn === 'w' ? 'white' : 'black')
       }
     }
     window.addEventListener('message', onMsg)
