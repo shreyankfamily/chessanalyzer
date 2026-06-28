@@ -3,9 +3,9 @@
 // Run: node local-server.js
 // Then open http://192.168.x.x:3000 on your mobile device
 
-const http = require('http')
-const url = require('url')
-const os = require('os')
+import http from 'http'
+import { parse } from 'url'
+import { networkInterfaces } from 'os'
 
 let latestPuzzle = {
   fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
@@ -13,7 +13,7 @@ let latestPuzzle = {
 }
 
 const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url, true)
+  const parsedUrl = parse(req.url, true)
   const pathname = parsedUrl.pathname
 
   // CORS headers
@@ -232,7 +232,7 @@ server.listen(PORT, () => {
 })
 
 function getLocalIpAddress() {
-  const interfaces = os.networkInterfaces()
+  const interfaces = networkInterfaces()
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
       if (iface.family === 'IPv4' && !iface.internal) {
