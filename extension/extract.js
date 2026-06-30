@@ -199,6 +199,14 @@ function normalize(s) {
 }
 
 function extractFen() {
+  // Lichess is a single-page app: the FEN embedded in inline-script JSON is the
+  // puzzle's INITIAL position and goes stale as you play moves or advance to the
+  // next puzzle (the script text never changes on SPA navigation). The live
+  // chessground board always reflects the current position, so read it first.
+  const onLichess = /(^|\.)lichess\.org$/i.test(location.hostname)
+  if (onLichess) {
+    return fromChessground() || fromBoardDom() || fromFields() || fromGlobals() || fromText() || null
+  }
   return fromGlobals() || fromFields() || fromText() || fromChessground() || fromBoardDom() || null
 }
 
