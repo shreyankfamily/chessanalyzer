@@ -16,17 +16,17 @@
       .server-status { padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 12px; }
       .server-status.running { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
       .server-status.offline { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
-      .server-link { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #86efac; color: #166534; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 600; }
+      .server-link { display: block; margin: -4px 0 12px; padding: 8px 12px; background: #166534; color: #fff; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; text-align: center; }
+      .server-link:hover { background: #14532d; }
+      .version { text-align: center; font-size: 10px; color: #9ca3af; margin-top: 12px; }
       .err { color: #e11d48; font-size: 12px; }
     </style>
   </head>
   <body>
     <h1>ChessAnalyzer Bridge</h1>
     <p>Reads the live position from ChessTempo or Lichess (no screenshots).</p>
-    <div id="serverStatus" class="server-status offline">
-      <div>⚠ Local server offline</div>
-      <a id="serverLink" class="server-link" style="display:none" target="_blank"></a>
-    </div>
+    <div id="serverStatus" class="server-status offline">⚠ Local server offline</div>
+    <a id="serverLink" class="server-link" style="display:none" target="_blank"></a>
     <div id="fen" class="fen">Detecting…</div>
     <button id="auto" title="Toggle auto-sync to mobile (▶ = off, ⏸ = on)">▶</button>
     <button id="open" class="primary">Open in ChessAnalyzer</button>
@@ -35,6 +35,7 @@
     <p style="margin:0 0 6px">Position not detected? Use a screenshot instead:</p>
     <button id="shot" class="secondary">📸 Screenshot &amp; scan</button>
     <div id="err" class="err"></div>
+    <div id="version" class="version"></div>
     <script src="popup.js"></script>
   </body>
 </html>

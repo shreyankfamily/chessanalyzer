@@ -61,10 +61,10 @@ async function checkServerStatus() {
     if (response.ok) {
       const info = await response.json()
       const url = `http://${info.ip}:${info.port}`
-      statusEl.innerHTML = `<div>✓ Local server running</div>`
+      statusEl.textContent = '✓ Local server running'
       linkEl.href = url
-      linkEl.textContent = `📱 ${url}`
-      linkEl.style.display = 'inline-block'
+      linkEl.textContent = `📱 Open on phone: ${url}`
+      linkEl.style.display = 'block'
       statusEl.classList.remove('offline')
       statusEl.classList.add('running')
       return
@@ -73,7 +73,7 @@ async function checkServerStatus() {
     // Server not responding
   }
   linkEl.style.display = 'none'
-  statusEl.innerHTML = '<div>⚠ Local server offline</div>'
+  statusEl.textContent = '⚠ Local server offline'
   statusEl.classList.remove('running')
   statusEl.classList.add('offline')
 }
@@ -109,6 +109,8 @@ document.getElementById('copy').addEventListener('click', async () => {
     document.getElementById('copy').textContent = 'Copied!'
   }
 })
+
+document.getElementById('version').textContent = 'v' + chrome.runtime.getManifest().version
 
 detect()
 updateAutoButtonState()
