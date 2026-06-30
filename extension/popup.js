@@ -52,13 +52,19 @@ async function updateAutoButtonState() {
 
 async function checkServerStatus() {
   const statusEl = document.getElementById('serverStatus')
+  const linkEl = document.getElementById('serverLink')
   try {
     const response = await Promise.race([
-      fetch('http://localhost:3000/api/puzzle'),
+      fetch('http://localhost:3000/api/info'),
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
     ])
     if (response.ok) {
-      statusEl.textContent = '✓ Local server running'
+      const info = await response.json()
+      const url = `http://${info.ip}:${info.port}`
+      statusEl.innerHTML = `<div>✓ Local server running</div>`
+      linkEl.href = url
+      linkEl.textContent = `📱 ${url}`
+      linkEl.style.display = 'inline-block'
       statusEl.classList.remove('offline')
       statusEl.classList.add('running')
       return
@@ -66,7 +72,8 @@ async function checkServerStatus() {
   } catch (e) {
     // Server not responding
   }
-  statusEl.textContent = '⚠ Local server offline'
+  linkEl.style.display = 'none'
+  statusEl.innerHTML = '<div>⚠ Local server offline</div>'
   statusEl.classList.remove('running')
   statusEl.classList.add('offline')
 }

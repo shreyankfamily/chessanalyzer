@@ -58,6 +58,14 @@ const server = http.createServer((req, res) => {
     return
   }
 
+  // API endpoint: get server info (IP and port)
+  if (pathname === '/api/info' && req.method === 'GET') {
+    const ipAddress = getLocalIpAddress()
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ ip: ipAddress, port: PORT }))
+    return
+  }
+
   // API endpoint: stop the server
   if (pathname === '/api/stop' && req.method === 'POST') {
     res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -319,7 +327,7 @@ const server = http.createServer((req, res) => {
 })
 
 const PORT = 3000
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   const ipAddress = getLocalIpAddress()
   console.log(`
 ╔════════════════════════════════════════════════════════╗
