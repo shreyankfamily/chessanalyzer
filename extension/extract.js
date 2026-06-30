@@ -162,25 +162,21 @@ function gridToFen(grid) {
 
 // Detect whose turn it is from the board orientation or page content
 function detectTurn() {
-  // In lichess puzzles, the board orientation usually matches whose turn it is
-  // If board is flipped (orientation-black), it's black to move
+  // Lichess (chessground): the puzzle board is oriented to the side to move,
+  // so a flipped board (orientation-black) means it's black to move.
   const wrap = document.querySelector('.cg-wrap')
   if (wrap && wrap.className) {
-    if (/orientation-black/.test(wrap.className)) {
-      return 'b'  // Board is flipped, so black to move
-    } else {
-      return 'w'  // Board is normal, so white to move
-    }
+    return /orientation-black/.test(wrap.className) ? 'b' : 'w'
   }
 
-  // Fallback: look for text indicators
-  const bodyText = (document.body.innerText || '').toLowerCase()
-  if (/black.*move|find.*best.*move.*black/.test(bodyText)) {
-    return 'b'
-  }
-  if (/white.*move|find.*best.*move.*white/.test(bodyText)) {
-    return 'w'
-  }
+  // ChessTempo (and others) show a prominent "Black to move" / "Black to play"
+  // label — match either wording. If both colors appear (e.g. unrelated tooltip
+  // text elsewhere), trust whichever phrase comes first in the document.
+  const text = (document.body.innerText || '').toLowerCase()
+  const black = text.search(/\bblack\s+to\s+(move|play)\b/)
+  const white = text.search(/\bwhite\s+to\s+(move|play)\b/)
+  if (black !== -1 && (white === -1 || black < white)) return 'b'
+  if (white !== -1) return 'w'
 
   return null
 }

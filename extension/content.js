@@ -14,12 +14,15 @@ function getFen() {
   }
 }
 
-function getOrientation() {
-  // Detect board orientation from lichess
+function getOrientation(fen) {
+  // Lichess (chessground): use the actual rendered board flip.
   const wrap = document.querySelector('.cg-wrap')
-  if (wrap && wrap.className && /orientation-black/.test(wrap.className)) {
-    return 'black'
+  if (wrap && wrap.className) {
+    return /orientation-black/.test(wrap.className) ? 'black' : 'white'
   }
+  // ChessTempo (and others): puzzles orient to the side to move, so derive
+  // orientation from the turn in the FEN we just extracted.
+  if (fen && fen.split(' ')[1] === 'b') return 'black'
   return 'white'
 }
 
@@ -30,7 +33,7 @@ function openInApp(fen) {
 
 // Send auto-update to app window if it's open
 function pushUpdateToApp(fen) {
-  const orientation = getOrientation()
+  const orientation = getOrientation(fen)
   window.postMessage({
     type: 'CHESSANALYZER_AUTO_UPDATE',
     fen,
@@ -51,7 +54,7 @@ function sendToLocalServer(fen) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fen,
-        orientation: getOrientation(),
+        orientation: getOrientation(fen),
       }),
     }).catch(() => {}) // silently ignore if server not running
   }
