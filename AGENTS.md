@@ -29,3 +29,8 @@ The scanner, TensorFlow model, and Stockfish engine run entirely in the browser.
 If `.agents/memory/MEMORY.md` exists locally, it contains migrated historical
 context. Consult only relevant entries and validate dated details against the
 current code before acting on them.
+
+## Removed local sync server
+
+The optional local puzzle-sync server, its startup service, and PM2 setup have
+been removed. Do not restore them without an explicit request.

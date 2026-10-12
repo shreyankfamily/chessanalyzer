@@ -50,34 +50,6 @@ async function updateAutoButtonState() {
   }
 }
 
-async function checkServerStatus() {
-  const statusEl = document.getElementById('serverStatus')
-  const linkEl = document.getElementById('serverLink')
-  try {
-    const response = await Promise.race([
-      fetch('http://localhost:3000/api/info'),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
-    ])
-    if (response.ok) {
-      const info = await response.json()
-      const url = `http://${info.ip}:${info.port}`
-      statusEl.textContent = '✓ Local server running'
-      linkEl.href = url
-      linkEl.textContent = `📱 Open on phone: ${url}`
-      linkEl.style.display = 'block'
-      statusEl.classList.remove('offline')
-      statusEl.classList.add('running')
-      return
-    }
-  } catch (e) {
-    // Server not responding
-  }
-  linkEl.style.display = 'none'
-  statusEl.textContent = '⚠ Local server offline'
-  statusEl.classList.remove('running')
-  statusEl.classList.add('offline')
-}
-
 document.getElementById('open').addEventListener('click', async () => {
   const tab = await activeTab()
   chrome.tabs.sendMessage(tab.id, { type: 'OPEN_IN_APP' }, () => {})
@@ -114,4 +86,3 @@ document.getElementById('version').textContent = 'v' + chrome.runtime.getManifes
 
 detect()
 updateAutoButtonState()
-checkServerStatus()

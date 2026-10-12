@@ -13,11 +13,6 @@
       #auto { width: 100%; margin-top: 10px; padding: 10px; font-size: 20px; background: #eef2ff; color: #2a1a6e; }
       #auto.active { background: #16a34a; color: #fff; }
       #auto:hover { opacity: 0.8; }
-      .server-status { padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 12px; }
-      .server-status.running { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-      .server-status.offline { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
-      .server-link { display: block; margin: -4px 0 12px; padding: 8px 12px; background: #166534; color: #fff; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; text-align: center; }
-      .server-link:hover { background: #14532d; }
       .version { text-align: center; font-size: 10px; color: #9ca3af; margin-top: 12px; }
       .err { color: #e11d48; font-size: 12px; }
     </style>
@@ -25,10 +20,8 @@
   <body>
     <h1>ChessAnalyzer Bridge</h1>
     <p>Reads the live position from ChessTempo or Lichess (no screenshots).</p>
-    <div id="serverStatus" class="server-status offline">⚠ Local server offline</div>
-    <a id="serverLink" class="server-link" style="display:none" target="_blank"></a>
     <div id="fen" class="fen">Detecting…</div>
-    <button id="auto" title="Toggle auto-sync to mobile (▶ = off, ⏸ = on)">▶</button>
+    <button id="auto" title="Toggle automatic position updates (▶ = off, ⏸ = on)">▶</button>
     <button id="open" class="primary">Open in ChessAnalyzer</button>
     <button id="copy" class="secondary">Copy FEN</button>
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0" />
