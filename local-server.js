@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-// Simple local server to sync puzzles across devices on the same network
+// Local server to sync puzzles with the browser extension on this Mac
 // Run: node local-server.js
-// Then open http://192.168.x.x:3000 on your mobile device
+// Then open http://127.0.0.1:3000 on this Mac
 
 import http from 'http'
 import { parse } from 'url'
-import { networkInterfaces } from 'os'
 
 let latestPuzzle = {
   fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
@@ -58,11 +57,10 @@ const server = http.createServer((req, res) => {
     return
   }
 
-  // API endpoint: get server info (IP and port)
+  // API endpoint: get the local server address and port
   if (pathname === '/api/info' && req.method === 'GET') {
-    const ipAddress = getLocalIpAddress()
     res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ ip: ipAddress, port: PORT }))
+    res.end(JSON.stringify({ ip: HOST, port: PORT }))
     return
   }
 
@@ -327,30 +325,7 @@ const server = http.createServer((req, res) => {
 })
 
 const PORT = 3000
-server.listen(PORT, '0.0.0.0', () => {
-  const ipAddress = getLocalIpAddress()
-  console.log(`
-╔════════════════════════════════════════════════════════╗
-║   ChessAnalyzer Local Server                           ║
-╠════════════════════════════════════════════════════════╣
-║                                                        ║
-║   On your mobile device, open:                         ║
-║   → http://${ipAddress}:${PORT}                         ║
-║                                                        ║
-║   Bookmark this URL and refresh to see latest puzzle   ║
-║                                                        ║
-╚════════════════════════════════════════════════════════╝
-`)
+const HOST = '127.0.0.1'
+server.listen(PORT, HOST, () => {
+  console.log(`ChessAnalyzer local server: http://${HOST}:${PORT}`)
 })
-
-function getLocalIpAddress() {
-  const interfaces = networkInterfaces()
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address
-      }
-    }
-  }
-  return 'localhost'
-}
